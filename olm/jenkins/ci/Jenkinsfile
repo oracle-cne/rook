@@ -6,5 +6,6 @@ String version = "{{{ .major }}}.{{{ .minor }}}.{{{ .patch }}}";
 olcnePipeline(
   branchPattern: new BranchPattern(master: 'oracle/release/' + version, feature: 'feature/.*'),
   yumOL8Repos: ['ol8_appstream', 'ol8_codeready_builder'],
-  platforms: ['ol8'],  
+  platforms: ['ol8'],
+  architectures: ['x86_64', 'aarch64'],
 )

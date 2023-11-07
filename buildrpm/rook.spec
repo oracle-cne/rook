@@ -9,8 +9,13 @@
 %global yqv4_version 4.14.2
 %global operatorsdk_version 0.17.1
 %global helm_version 3.6.2
-%global controllergen_version 0.6.2
+%global controllergen_version 0.11.3
 %global kubectl_version 1.14
+%ifarch %{arm} arm64 aarch64
+%global arch arm64
+%else
+%global arch amd64
+%endif
 
 Name:    %{app_name}
 Version: %{app_version}
@@ -44,16 +49,16 @@ BuildRequires:  kubectl >= %{kubectl_version}
 # to the versions of these tools.  If builds start failing without
 # a clear reason, these build dependencies are a good spot to
 # start looking
-mkdir -p .cache/tools/linux_amd64/
-cp `which operator-sdk` .cache/tools/linux_amd64/operator-sdk-v%{operatorsdk_version}
-cp `which yq` .cache/tools/linux_amd64/yq-%{yqv3_version}
-cp `which yq4` .cache/tools/linux_amd64/yq-v%{yqv4_version}
-cp `which controller-gen` .cache/tools/linux_amd64/controller-gen-v%{controllergen_version}
-cp `which helm` .cache/tools/linux_amd64/helm-v%{helm_version}
+mkdir -p .cache/tools/linux_%{arch}/
+cp `which operator-sdk` .cache/tools/linux_%{arch}/operator-sdk-v%{operatorsdk_version}
+cp `which yq` .cache/tools/linux_%{arch}/yq-%{yqv3_version}
+cp `which yq4` .cache/tools/linux_%{arch}/yq-v%{yqv4_version}
+cp `which controller-gen` .cache/tools/linux_%{arch}/controller-gen-v%{controllergen_version}
+cp `which helm` .cache/tools/linux_%{arch}/helm-v%{helm_version}
 
 # Build everything
 mkdir -p `pwd`/_output/templates
-make VERSION=1.11.6 BUILD_CONTAINER_IMAGE=false TEMP=`pwd`/_output/templates build
+make VERSION={{{$version}}} BUILD_CONTAINER_IMAGE=false TEMP=`pwd`/_output/templates build
 
 %install
 # Refer to images/ceph/Dockerfile to see how/why files
@@ -62,7 +67,7 @@ install -m 755 -d %{buildroot}/usr/local/bin
 install -m 755 -d %{buildroot}/etc
 install -m 755 -d %{buildroot}/etc/ceph-csv-templates
 install -m 755 -d %{buildroot}/etc/rook-external
-install -m 755 _output/bin/linux_amd64/rook %{buildroot}/usr/local/bin/rook
+install -m 755 _output/bin/linux_%{arch}/rook %{buildroot}/usr/local/bin/rook
 install -m 755 images/ceph/set-ceph-debug-level %{buildroot}/usr/local/bin/set-ceph-debug-level
 install -m 755 images/ceph/toolbox.sh %{buildroot}/usr/local/bin/toolbox.sh
 
@@ -70,7 +75,7 @@ cp -r deploy/examples/monitoring %{buildroot}/etc/ceph-monitoring
 cp -r deploy/examples/create-external-cluster-resources.* %{buildroot}/etc/rook-external
 install -m 755 -d %{buildroot}/etc/rook-external/test-data
 install tests/ceph-status-out %{buildroot}/etc/rook-external/test-data/ceph-status-out
-cp -r _output/templates/* %{buildroot}/etc/ceph-csv-templates
+#cp -r _output/templates/* %{buildroot}/etc/ceph-csv-templates
 
 %files
 %license LICENSE THIRD_PARTY_LICENSES.txt
@@ -81,5 +86,5 @@ cp -r _output/templates/* %{buildroot}/etc/ceph-csv-templates
 /etc
 
 %changelog
-* Fri Feb 10 2023 Daniel Krasinski <daniel.krasinski@oracle.com> - 1.10.9-1
-- Initial Release
+* {{{.changelog_timestamp}}} - {{{ $version }}}-1
+- Added Oracle specific files for {{{ $version }}}-1
