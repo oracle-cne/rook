@@ -1,4 +1,5 @@
 {{{$version := printf "%s.%s.%s" .major .minor .patch}}}
+%global _buildhost          build-ol%{?oraclelinux}-%{?_arch}.oracle.com
 %global debug_package   %{nil}
 
 %global app_name rook
