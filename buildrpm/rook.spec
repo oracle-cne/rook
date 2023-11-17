@@ -28,7 +28,7 @@ Source0: %{name}-%{version}.tar.bz2
 
 Requires:       s5cmd
 
-BuildRequires:  golang >= 1.19.0
+BuildRequires:  golang >= 1.20.10
 BuildRequires:  helm = %{helm_version}
 BuildRequires:  yq = %{yqv3_version}
 BuildRequires:  yq4 = %{yqv4_version}

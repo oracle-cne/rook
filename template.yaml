@@ -4,4 +4,4 @@ Comparator: 0
 BranchTemplate: feature/${major}.${minor}.${patch}
 MasterBranchTemplate: oracle/release/${major}.${minor}.${patch}
 TemplateDirectory: "v${major}.${minor}"
-SemverTagFilter: ">= v1.10.9"
+SemverTagFilter: ">= v1.11.6"
