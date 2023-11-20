@@ -1,11 +1,19 @@
 @Library('olcne-pipeline') _
 import com.oracle.olcne.pipeline.BranchPattern
 
-String version = "{{{ .major }}}.{{{ .minor }}}.{{{ .patch }}}";
+// NOTE: Make sure ceph image (ceph-container) built before rook
+String cephVersion  = "17.2.5";
+String rookVersion  = "{{{ .major }}}.{{{ .minor }}}.{{{ .patch }}}";
+String rookImageTag = "v" + rookVersion
 
 olcnePipeline(
   branchPattern: new BranchPattern(master: 'oracle/release/' + version, feature: 'feature/.*'),
+  containers: [('container-registry.oracle.com/olcne/ceph:' + rookImageTag): 'olcne/ceph:' + rookImageTag],
   yumOL8Repos: ['ol8_appstream', 'ol8_codeready_builder'],
   platforms: ['ol8'],
   architectures: ['x86_64', 'aarch64'],
+  macros: [
+    'ceph_version': cephVersion,
+    'build_args': '-v /etc/yum.repos.d/ol_artifacts.repo:/etc/yum.repos.d/ol_artifacts.repo -v /etc/yum/vars:/etc/yum/vars',
+  ],
 )
