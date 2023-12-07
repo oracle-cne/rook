@@ -23,7 +23,7 @@ Version: %{app_version}
 Release: %{oracle_release_version}%{?dist}
 Summary: Rook cloud native storage operator
 License: Apache License 2.0
-URL:     https://github.com/operator-framework/operator-sdk
+URL:     https://github.com/rook/rook
 Source0: %{name}-%{version}.tar.bz2
 
 Requires:       s5cmd
