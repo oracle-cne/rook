@@ -8,7 +8,11 @@
 
 %global yqv3_version 3.3.0
 %global yqv4_version 4.14.2
+{{{- if semverCompare ">=1.13.10" $version }}}
+%global operatorsdk_version 1.27.0
+{{{- else }}}
 %global operatorsdk_version 0.17.1
+{{{- end }}}
 %global helm_version 3.6.2
 %global controllergen_version 0.11.3
 %global kubectl_version 1.14
@@ -25,10 +29,14 @@ Summary: Rook cloud native storage operator
 License: Apache License 2.0
 URL:     https://github.com/rook/rook
 Source0: %{name}-%{version}.tar.bz2
+{{{- if semverCompare ">=1.13.10" $version }}}
+Patch0:  images_ceph_toolbox.patch
+Patch1:  images_ceph_set-ceph-debug-level.patch
+{{{- end }}}
 
 Requires:       s5cmd
 
-BuildRequires:  golang >= 1.20.12
+BuildRequires:  golang
 BuildRequires:  helm = %{helm_version}
 BuildRequires:  yq = %{yqv3_version}
 BuildRequires:  yq4 = %{yqv4_version}
@@ -40,6 +48,10 @@ BuildRequires:  kubectl >= %{kubectl_version}
 
 %prep
 %setup -q
+{{{- if semverCompare ">=1.13.10" $version }}}
+%patch0
+%patch1
+{{{- end }}}
 
 %build
 
