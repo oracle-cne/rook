@@ -32,6 +32,7 @@ Source0: %{name}-%{version}.tar.bz2
 {{{- if semverCompare ">=1.13.10" $version }}}
 Patch0:  images_ceph_toolbox.patch
 Patch1:  images_ceph_set-ceph-debug-level.patch
+Patch2:  disable-topology.patch
 {{{- end }}}
 
 Requires:       s5cmd
@@ -51,6 +52,7 @@ BuildRequires:  kubectl >= %{kubectl_version}
 {{{- if semverCompare ">=1.13.10" $version }}}
 %patch0
 %patch1
+%patch2
 {{{- end }}}
 
 %build
