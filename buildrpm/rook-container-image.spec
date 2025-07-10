@@ -18,7 +18,9 @@
 %global arch x86_64
 %global custom_arch amd64
 %endif
-%global ceph_version "17.2.5"
+{{{- if semverCompare ">=1.13.10" $version }}}
+%global ceph_version "18.2.2"
+{{{- end }}}
 
 
 Name:           %{_name}-container-image
