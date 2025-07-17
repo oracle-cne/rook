@@ -73,7 +73,7 @@ cp `which helm` .cache/tools/linux_%{arch}/helm-v%{helm_version}
 
 # Build everything
 mkdir -p `pwd`/_output/templates
-make VERSION={{{$version}}} BUILD_CONTAINER_IMAGE=false TEMP=`pwd`/_output/templates build
+make VERSION={{{$version}}} GO_BUILDFLAGS="-trimpath=false" GO_LDFLAGS="-X main.version={{{$version}}}" BUILD_CONTAINER_IMAGE=false TEMP=`pwd`/_output/templates build
 
 %install
 # Refer to images/ceph/Dockerfile to see how/why files
