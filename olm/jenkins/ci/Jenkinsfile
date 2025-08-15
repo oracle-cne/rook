@@ -10,8 +10,5 @@ olcnePipeline(
   containers: [('container-registry.oracle.com/olcne/ceph:' + rookImageTag): 'olcne/ceph:' + rookImageTag],
   yumOL8Repos: ['ol8_appstream', 'ol8_codeready_builder'],
   platforms: ['ol8'],
-  {{{- if semverCompare ">=1.13.10" $version }}}
-  golang: "1.21.13",
-  {{{- end }}}
   architectures: ['x86_64', 'aarch64'],
 )
