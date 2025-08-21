@@ -18,6 +18,8 @@
 %global arch x86_64
 %global custom_arch amd64
 %endif
+{{{- if semverCompare ">=1.16.6" $version }}}
+%global ceph_version "19.2.1"
 {{{- if semverCompare ">=1.13.10" $version }}}
 %global ceph_version "18.2.2"
 {{{- end }}}
