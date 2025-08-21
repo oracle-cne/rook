@@ -7,14 +7,25 @@
 %global oracle_release_version 1
 
 %global yqv3_version 3.3.0
+{{{- if semverCompare ">=1.15.9" $version }}}
+%global yqv4_version 4.45.1
+%global controllergen_version 0.16.1
+{{{- else }}}
 %global yqv4_version 4.14.2
+%global controllergen_version 0.11.3
+{{{- else }}}
 {{{- if semverCompare ">=1.13.10" $version }}}
 %global operatorsdk_version 1.27.0
 {{{- else }}}
 %global operatorsdk_version 0.17.1
 {{{- end }}}
+{{{- if semverCompare ">=1.17.7" $version }}}
+%global helm_version 3.18.4
+{{{- if semverCompare ">=1.16.6" $version }}}
+%global helm_version 3.17.3
+{{{- else }}}
 %global helm_version 3.6.2
-%global controllergen_version 0.11.3
+{{{- end }}}
 %global kubectl_version 1.14
 %ifarch %{arm} arm64 aarch64
 %global arch arm64
@@ -29,7 +40,11 @@ Summary: Rook cloud native storage operator
 License: Apache License 2.0
 URL:     https://github.com/rook/rook
 Source0: %{name}-%{version}.tar.bz2
-{{{- if semverCompare ">=1.13.10" $version }}}
+{{{- if semverCompare ">=1.15.9" $version }}}
+Patch0:  images_ceph_toolbox.patch
+Patch1:  images_ceph_set-ceph-debug-level.patch
+Patch2:  makefile.patch
+{{{- else if semverCompare ">=1.13.10" $version }}}
 Patch0:  images_ceph_toolbox.patch
 Patch1:  images_ceph_set-ceph-debug-level.patch
 Patch2:  disable-topology.patch
@@ -49,7 +64,11 @@ BuildRequires:  kubectl >= %{kubectl_version}
 
 %prep
 %setup -q
-{{{- if semverCompare ">=1.13.10" $version }}}
+{{{- if semverCompare ">=1.15.9" $version }}}
+%patch0
+%patch1
+%patch2
+{{{- else if semverCompare ">=1.13.10" $version }}}
 %patch0
 %patch1
 %patch2
@@ -89,8 +108,10 @@ install -m 755 images/ceph/toolbox.sh %{buildroot}/usr/local/bin/toolbox.sh
 cp -r deploy/examples/monitoring %{buildroot}/etc/ceph-monitoring
 cp -r deploy/examples/create-external-cluster-resources.* %{buildroot}/etc/rook-external
 install -m 755 -d %{buildroot}/etc/rook-external/test-data
+{{{- if semverCompare "<1.15.0" $version }}}
 install tests/ceph-status-out %{buildroot}/etc/rook-external/test-data/ceph-status-out
 #cp -r _output/templates/* %{buildroot}/etc/ceph-csv-templates
+{{{- end }}}
 
 %files
 %license LICENSE THIRD_PARTY_LICENSES.txt
