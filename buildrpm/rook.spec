@@ -13,7 +13,7 @@
 {{{- else }}}
 %global yqv4_version 4.14.2
 %global controllergen_version 0.11.3
-{{{- else }}}
+{{{- end }}}
 {{{- if semverCompare ">=1.13.10" $version }}}
 %global operatorsdk_version 1.27.0
 {{{- else }}}
@@ -21,7 +21,7 @@
 {{{- end }}}
 {{{- if semverCompare ">=1.17.7" $version }}}
 %global helm_version 3.18.4
-{{{- if semverCompare ">=1.16.6" $version }}}
+{{{- else if semverCompare ">=1.16.6" $version }}}
 %global helm_version 3.17.3
 {{{- else }}}
 %global helm_version 3.6.2

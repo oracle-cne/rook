@@ -18,12 +18,6 @@
 %global arch x86_64
 %global custom_arch amd64
 %endif
-{{{- if semverCompare ">=1.16.6" $version }}}
-%global ceph_version "19.2.1"
-{{{- if semverCompare ">=1.13.10" $version }}}
-%global ceph_version "18.2.2"
-{{{- end }}}
-
 
 Name:           %{_name}-container-image
 Version:        {{{$version}}}
@@ -45,16 +39,17 @@ Rook container image
 
 %build
 # NOTE: Make sure ceph image built before rook
-%global ceph_tag container-registry.oracle.com/olcne/ceph:v%{ceph_version}
+%global ceph_version "$(grep 'ceph/ceph:v' deploy/examples/images.txt | cut -d ':' -f 2)"
+%global ceph_tag container-registry.oracle.com/olcne/ceph:%{ceph_version}
 if [[ $( podman pull %{ceph_tag} ) && \
       $( podman inspect -t image -f "{{.Architecture}}"  %{ceph_tag} ) = %{custom_arch} ]];then
      echo "Using ceph image from ocr"
-elif [[ $( podman pull %{registry_url}/ceph:v%{ceph_version} ) && \
-        $( podman inspect -t image -f "{{.Architecture}}"  %{registry_url}/ceph:v%{ceph_version} ) = %{custom_arch} ]];then
+elif [[ $( podman pull %{registry_url}/ceph:%{ceph_version} ) && \
+        $( podman inspect -t image -f "{{.Architecture}}"  %{registry_url}/ceph:%{ceph_version} ) = %{custom_arch} ]];then
     podman rmi -f %{ceph_tag}
-    podman tag %{registry_url}/ceph:v%{ceph_version} %{ceph_tag}
+    podman tag %{registry_url}/ceph:%{ceph_version} %{ceph_tag}
 else
-     echo "Ceph:v%{ceph_version} doesn't exist"
+     echo "Ceph:%{ceph_version} doesn't exist"
      exit 1
 fi
 
