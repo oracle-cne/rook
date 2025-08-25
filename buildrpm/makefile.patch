@@ -1,7 +1,7 @@
-diff --git a/Makefile b/Makefile
+diff --git Makefile Makefile
 index 5ccd6d28b..5fb204be2 100644
---- a/Makefile
-+++ b/Makefile
+--- Makefile
++++ Makefile
 @@ -119,7 +119,7 @@ build.version:
  	@echo "$(VERSION)" > $(OUTPUT_DIR)/version
  
