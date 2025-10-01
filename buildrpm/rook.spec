@@ -6,11 +6,12 @@
 %global app_version 1.18.1
 %global oracle_release_version 1
 
-%global yqv3_version 3.3.0
-%global yqv4_version 4.45.1
-%global controllergen_version 0.16.1
-%global operatorsdk_version 1.27.0
-%global helm_version 3.18.4
+%global yqv3_version %(echo $(grep ^YQv3_VERSION images/ceph/Makefile | cut -d= -f2) | awk '{$1=$1;print}')
+%global yqv4_version %(echo $(grep ^YQ_VERSION build/makelib/golang.mk | cut -d= -f2 | cut -dv -f2) | awk '{$1=$1;print}')
+%global controllergen_version %(echo $(grep ^CONTROLLER_GEN_VERSION Makefile | cut -d= -f2 | cut -dv -f2) | awk '{$1=$1;print}')
+%global operatorsdk_version %(echo $(grep ^OPERATOR_SDK_VERSION images/ceph/Makefile | cut -d= -f2 | cut -dv -f2) | awk '{$1=$1;print}')
+%global helm_version %(echo $(grep ^HELM_VERSION build/makelib/helm.mk | cut -d= -f2 | cut -dv -f2) | awk '{$1=$1;print}')
+%global s5cmd_version %(echo $(grep ^S5CMD_VERSION images/ceph/Makefile | cut -d= -f2) | awk '{$1=$1;print}')
 %global kubectl_version 1.14
 %ifarch %{arm} arm64 aarch64
 %global arch arm64
@@ -29,7 +30,7 @@ Patch0:  images_ceph_toolbox.patch
 Patch1:  images_ceph_set-ceph-debug-level.patch
 Patch2:  makefile.patch
 
-Requires:       s5cmd
+Requires:       s5cmd = %{s5cmd_version}
 
 BuildRequires:  golang
 BuildRequires:  helm = %{helm_version}
