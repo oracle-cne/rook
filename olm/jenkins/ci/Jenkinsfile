@@ -1,5 +1,4 @@
 @Library('pipeline-shared@feature/highest-golang')
-@Library('olcne-pipeline@feature/highest-golang') _
 import com.oracle.olcne.pipeline.BranchPattern
 
 // NOTE: Make sure ceph image (ceph-container) built before rook
