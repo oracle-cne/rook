@@ -174,7 +174,7 @@ go.vet:
 
 .PHONY: go.fmt
 go.fmt:
-	@echo === go fmt (check)
+	@echo "=== go fmt (check)"
 	@set -e; \
 	files="$$(find $(GO_SUBDIRS) $(GO_INTEGRATION_TESTS_SUBDIRS) -type f -name '*.go' 2>/dev/null)"; \
 	if [ -z "$$files" ]; then \
@@ -190,7 +190,7 @@ go.fmt:
 
 .PHONY: go.fmt-fix
 go.fmt-fix:
-	@echo === go fmt (fix)
+	@echo "=== go fmt (fix)"
 	@set -e; \
 	files="$$(find $(GO_SUBDIRS) $(GO_INTEGRATION_TESTS_SUBDIRS) -type f -name '*.go' 2>/dev/null)"; \
 	if [ -z "$$files" ]; then \
