@@ -174,7 +174,7 @@ go.vet:
 
 .PHONY: go.fmt
 go.fmt: $(GOLANGCI_LINT)
-	@$(GOLANGCI_LINT) fmt --diff
+	@$(GOLANGCI_LINT) fmt
 
 .PHONY: go.fmt-fix
 go.fmt-fix: $(GOLANGCI_LINT)
