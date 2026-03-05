@@ -95,7 +95,12 @@ GOLANGCI_LINT_VERSION ?= $(strip $(shell \
 ifeq ($(strip $(GOLANGCI_LINT_VERSION)),)
 GOLANGCI_LINT_VERSION := v1.64.5
 endif
-GOLANGCI_LINT := $(TOOLS_HOST_DIR)/golangci-lint-$(GOLANGCI_LINT_VERSION)
+
+# Actual golangci-lint binary (downloaded)
+GOLANGCI_LINT_BIN := $(TOOLS_HOST_DIR)/golangci-lint-$(GOLANGCI_LINT_VERSION)
+
+# Wrapper used by build targets to tolerate legacy/unsupported flags (e.g., -d)
+GOLANGCI_LINT := $(TOOLS_HOST_DIR)/golangci-lint
 
 GO_OUT_DIR := $(abspath $(OUTPUT_DIR)/bin/$(PLATFORM))
 GO_TEST_OUTPUT := $(abspath $(OUTPUT_DIR)/tests/$(PLATFORM))
@@ -203,11 +208,34 @@ go.mod.clean:
 	@sudo rm -fr $(WORK_DIR)/cross_pkg
 	@$(GOHOST) clean -modcache
 
-$(GOLANGCI_LINT):
+# Create a wrapper script that invokes the downloaded golangci-lint binary,
+# while tolerating legacy flags that some downstream tooling may add.
+#
+# The RPM build log indicates 'golangci-lint -d' is being executed and fails with
+# "unknown shorthand flag: 'd' in -d". This wrapper strips '-d' and '--debug'
+# before executing the actual binary.
+$(GOLANGCI_LINT): $(GOLANGCI_LINT_BIN)
+	@echo === configuring golangci-lint wrapper
+	@mkdir -p $(TOOLS_HOST_DIR)
+	@{ \
+		echo '#!/usr/bin/env bash'; \
+		echo 'set -euo pipefail'; \
+		echo 'args=()'; \
+		echo 'for a in "$$@"; do'; \
+		echo '  case "$$a" in'; \
+		echo '    -d|--debug) ;;'; \
+		echo '    *) args+=("$$a") ;;'; \
+		echo '  esac'; \
+		echo 'done'; \
+		echo 'exec "$(GOLANGCI_LINT_BIN)" "$${args[@]}"'; \
+	} > $(GOLANGCI_LINT)
+	@chmod +x $(GOLANGCI_LINT)
+
+$(GOLANGCI_LINT_BIN):
 	@echo === installing golangci-lint-$(GOLANGCI_LINT_VERSION)
 	@mkdir -p $(TOOLS_HOST_DIR)/tmp
 	@curl -sL https://github.com/golangci/golangci-lint/releases/download/$(GOLANGCI_LINT_VERSION)/golangci-lint-$(patsubst v%,%,$(GOLANGCI_LINT_VERSION))-$(shell go env GOHOSTOS)-$(GOHOSTARCH).tar.gz | tar -xz -C $(TOOLS_HOST_DIR)/tmp
-	@mv $(TOOLS_HOST_DIR)/tmp/golangci-lint-$(patsubst v%,%,$(GOLANGCI_LINT_VERSION))-$(shell go env GOHOSTOS)-$(GOHOSTARCH)/golangci-lint $(GOLANGCI_LINT)
+	@mv $(TOOLS_HOST_DIR)/tmp/golangci-lint-$(patsubst v%,%,$(GOLANGCI_LINT_VERSION))-$(shell go env GOHOSTOS)-$(GOHOSTARCH)/golangci-lint $(GOLANGCI_LINT_BIN)
 	@rm -fr $(TOOLS_HOST_DIR)/tmp
 
 $(GOJUNIT):
