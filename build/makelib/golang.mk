@@ -173,12 +173,31 @@ go.vet:
 	CGO_ENABLED=$(CGO_ENABLED_VALUE) $(GOHOST) vet $(GO_COMMON_FLAGS) $(GO_PACKAGES) $(GO_INTEGRATION_TEST_PACKAGES)
 
 .PHONY: go.fmt
-go.fmt: $(GOLANGCI_LINT)
-	@$(GOLANGCI_LINT) fmt
+go.fmt:
+	@echo === go fmt (check)
+	@set -e; \
+	files="$$(find $(GO_SUBDIRS) $(GO_INTEGRATION_TESTS_SUBDIRS) -type f -name '*.go' 2>/dev/null)"; \
+	if [ -z "$$files" ]; then \
+		echo "No Go files found to format."; \
+		exit 0; \
+	fi; \
+	out="$$(gofmt -l $$files)"; \
+	if [ -n "$$out" ]; then \
+		echo "Go files not formatted (run 'make fmt-fix'):"; \
+		echo "$$out"; \
+		exit 1; \
+	fi
 
 .PHONY: go.fmt-fix
-go.fmt-fix: $(GOLANGCI_LINT)
-	@$(GOLANGCI_LINT) fmt
+go.fmt-fix:
+	@echo === go fmt (fix)
+	@set -e; \
+	files="$$(find $(GO_SUBDIRS) $(GO_INTEGRATION_TESTS_SUBDIRS) -type f -name '*.go' 2>/dev/null)"; \
+	if [ -z "$$files" ]; then \
+		echo "No Go files found to format."; \
+		exit 0; \
+	fi; \
+	gofmt -w $$files
 
 .PHONY: go.golangci-lint
 go.golangci-lint: $(GOLANGCI_LINT)
