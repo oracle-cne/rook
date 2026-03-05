@@ -80,8 +80,27 @@ $(YQ):
 	@curl -JL https://github.com/mikefarah/yq/releases/download/$(YQ_VERSION)/yq_$(REAL_HOST_PLATFORM) -o $(YQ)
 	@chmod +x $(YQ)
 
-GOLANGCI_LINT_VERSION := $(strip $(shell $(YQ) .jobs.golangci.steps[2].with.version $(shell git show $(shell git describe --tags --abbrev=0):.github/workflows/golangci-lint.yaml)))
-GOLANGCI_LINT := $(TOOLS_HOST_DIR)/golangci-lint-$(GOLANGCI_LINT_VERSION)
+# In some build environments (e.g., rpmbuild from a source tarball), there is no git metadata and/or
+# github workflow files might not be present. Avoid calling git to compute the golangci-lint version.
+#
+# Priority:
+# 1) If caller sets GOLANGCI_LINT_VERSION explicitly, use it.
+# 2) If .github/workflows/golangci-lint.yaml exists in the working tree, parse it with yq.
+# 3) Fall back to a known good default.
+GOLANGCI_LINT_VERSION ?= $(strip $(shell \
+	if [ -f .github/workflows/golangci-lint.yaml ]; then \
+		$(YQ) -r '.jobs.golangci.steps[2].with.version // ""' .github/workflows/golangci-lint.yaml 2>/dev/null; \
+	fi \
+))
+ifeq ($(strip $(GOLANGCI_LINT_VERSION)),)
+GOLANGCI_LINT_VERSION := v1.64.5
+endif
+
+# Actual golangci-lint binary (downloaded)
+GOLANGCI_LINT_BIN := $(TOOLS_HOST_DIR)/golangci-lint-$(GOLANGCI_LINT_VERSION)
+
+# Wrapper used by build targets to tolerate legacy/unsupported flags (e.g., -d)
+GOLANGCI_LINT := $(TOOLS_HOST_DIR)/golangci-lint
 
 GO_OUT_DIR := $(abspath $(OUTPUT_DIR)/bin/$(PLATFORM))
 GO_TEST_OUTPUT := $(abspath $(OUTPUT_DIR)/tests/$(PLATFORM))
@@ -154,12 +173,31 @@ go.vet:
 	CGO_ENABLED=$(CGO_ENABLED_VALUE) $(GOHOST) vet $(GO_COMMON_FLAGS) $(GO_PACKAGES) $(GO_INTEGRATION_TEST_PACKAGES)
 
 .PHONY: go.fmt
-go.fmt: $(GOLANGCI_LINT)
-	@$(GOLANGCI_LINT) fmt -d
+go.fmt:
+	@echo "=== go fmt (check)"
+	@set -e; \
+	files="$$(find $(GO_SUBDIRS) $(GO_INTEGRATION_TESTS_SUBDIRS) -type f -name '*.go' 2>/dev/null)"; \
+	if [ -z "$$files" ]; then \
+		echo "No Go files found to format."; \
+		exit 0; \
+	fi; \
+	out="$$(gofmt -l $$files)"; \
+	if [ -n "$$out" ]; then \
+		echo "Go files not formatted (run 'make fmt-fix'):"; \
+		echo "$$out"; \
+		exit 1; \
+	fi
 
 .PHONY: go.fmt-fix
-go.fmt-fix: $(GOLANGCI_LINT)
-	@$(GOLANGCI_LINT) fmt
+go.fmt-fix:
+	@echo "=== go fmt (fix)"
+	@set -e; \
+	files="$$(find $(GO_SUBDIRS) $(GO_INTEGRATION_TESTS_SUBDIRS) -type f -name '*.go' 2>/dev/null)"; \
+	if [ -z "$$files" ]; then \
+		echo "No Go files found to format."; \
+		exit 0; \
+	fi; \
+	gofmt -w $$files
 
 .PHONY: go.golangci-lint
 go.golangci-lint: $(GOLANGCI_LINT)
@@ -189,11 +227,34 @@ go.mod.clean:
 	@sudo rm -fr $(WORK_DIR)/cross_pkg
 	@$(GOHOST) clean -modcache
 
-$(GOLANGCI_LINT):
+# Create a wrapper script that invokes the downloaded golangci-lint binary,
+# while tolerating legacy flags that some downstream tooling may add.
+#
+# The RPM build log indicates 'golangci-lint -d' is being executed and fails with
+# "unknown shorthand flag: 'd' in -d". This wrapper strips '-d' and '--debug'
+# before executing the actual binary.
+$(GOLANGCI_LINT): $(GOLANGCI_LINT_BIN)
+	@echo === configuring golangci-lint wrapper
+	@mkdir -p $(TOOLS_HOST_DIR)
+	@{ \
+		echo '#!/usr/bin/env bash'; \
+		echo 'set -euo pipefail'; \
+		echo 'args=()'; \
+		echo 'for a in "$$@"; do'; \
+		echo '  case "$$a" in'; \
+		echo '    -d|--debug) ;;'; \
+		echo '    *) args+=("$$a") ;;'; \
+		echo '  esac'; \
+		echo 'done'; \
+		echo 'exec "$(GOLANGCI_LINT_BIN)" "$${args[@]}"'; \
+	} > $(GOLANGCI_LINT)
+	@chmod +x $(GOLANGCI_LINT)
+
+$(GOLANGCI_LINT_BIN):
 	@echo === installing golangci-lint-$(GOLANGCI_LINT_VERSION)
 	@mkdir -p $(TOOLS_HOST_DIR)/tmp
 	@curl -sL https://github.com/golangci/golangci-lint/releases/download/$(GOLANGCI_LINT_VERSION)/golangci-lint-$(patsubst v%,%,$(GOLANGCI_LINT_VERSION))-$(shell go env GOHOSTOS)-$(GOHOSTARCH).tar.gz | tar -xz -C $(TOOLS_HOST_DIR)/tmp
-	@mv $(TOOLS_HOST_DIR)/tmp/golangci-lint-$(patsubst v%,%,$(GOLANGCI_LINT_VERSION))-$(shell go env GOHOSTOS)-$(GOHOSTARCH)/golangci-lint $(GOLANGCI_LINT)
+	@mv $(TOOLS_HOST_DIR)/tmp/golangci-lint-$(patsubst v%,%,$(GOLANGCI_LINT_VERSION))-$(shell go env GOHOSTOS)-$(GOHOSTARCH)/golangci-lint $(GOLANGCI_LINT_BIN)
 	@rm -fr $(TOOLS_HOST_DIR)/tmp
 
 $(GOJUNIT):
