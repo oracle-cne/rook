@@ -1,4 +1,5 @@
-@Library('olcne-pipeline') _
+@Library('olcne-pipeline@ai-engineer') _
+@Library('olcne-shared@ai-engineer') _
 import com.oracle.olcne.pipeline.BranchPattern
 
 // NOTE: Make sure ceph image (ceph-container) built before rook
