@@ -1,4 +1,4 @@
-@Library('pipeline-shared@ai-engineer') _
+@Library('pipeline-shared@ai-engineer')
 @Library('olcne-pipeline@ai-engineer') _
 import com.oracle.olcne.pipeline.BranchPattern
 
