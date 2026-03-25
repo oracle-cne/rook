@@ -9,5 +9,5 @@ index 5ccd6d28b..5fb204be2 100644
 -build.common: build.version helm.build mod.check crds gen-rbac
 +build.common: build.version helm.build mod.check
  	@$(MAKE) go.init
- 	@$(MAKE) go.validate
+ 	@$(MAKE) go.vet
  	@$(MAKE) -C images/ceph list-image
