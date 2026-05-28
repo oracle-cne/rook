@@ -80,7 +80,7 @@ $(YQ):
 	@curl -JL https://github.com/mikefarah/yq/releases/download/$(YQ_VERSION)/yq_$(REAL_HOST_PLATFORM) -o $(YQ)
 	@chmod +x $(YQ)
 
-GOLANGCI_LINT_VERSION := $(strip $(shell $(YQ) .jobs.golangci.steps[2].with.version .github/workflows/golangci-lint.yaml))
+GOLANGCI_LINT_VERSION := $(strip $(shell if [ -f .github/workflows/golangci-lint.yaml ]; then $(YQ) .jobs.golangci.steps[2].with.version .github/workflows/golangci-lint.yaml; else echo v2.6.2; fi))
 GOLANGCI_LINT := $(TOOLS_HOST_DIR)/golangci-lint-$(GOLANGCI_LINT_VERSION)
 
 GO_OUT_DIR := $(abspath $(OUTPUT_DIR)/bin/$(PLATFORM))
