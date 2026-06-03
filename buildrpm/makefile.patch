@@ -7,5 +7,6 @@ index d704b968e..57ff637cd 100644
 -build.common: build.version helm.build mod.check crds.manifests gen.rbac
 +build.common: build.version helm.build mod.check
  	@$(MAKE) go.init
- 	@$(MAKE) go.validate
+-	@$(MAKE) go.validate
++	@$(MAKE) go.vet
  	@$(MAKE) -C images/ceph list-image
