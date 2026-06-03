@@ -1,0 +1,12 @@
+diff --git Makefile Makefile
+index d704b968e..57ff637cd 100644
+--- Makefile
++++ Makefile
+@@ -134,5 +134,5 @@ build.version:
+ .PHONY: build.common
+-build.common: build.version helm.build mod.check crds.manifests gen.rbac
++build.common: build.version helm.build mod.check
+ 	@$(MAKE) go.init
+-	@$(MAKE) go.validate
++	@$(MAKE) go.vet
+ 	@$(MAKE) -C images/ceph list-image
