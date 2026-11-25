@@ -1,0 +1,120 @@
+version: "2"
+run:
+  tests: true
+linters:
+  default: none
+  enable:
+    - depguard
+    - dupl
+    - err113
+    - errcheck
+    - errorlint
+    - gochecknoinits
+    - gocognit
+    - goconst
+    - gocritic
+    - gomodguard
+    - goprintffuncname
+    - gosec
+    - govet
+    - ineffassign
+    - misspell
+    - nakedret
+    - nestif
+    - noctx
+    - nolintlint
+    - revive
+    - rowserrcheck
+    - staticcheck
+    - tparallel
+    - unconvert
+    - unused
+  settings:
+    depguard:
+      rules:
+        all:
+          files:
+            - $all
+          deny:
+            - pkg: github.com/magiconair/properties/assert
+              desc: Use testify/assert package instead
+        main:
+          files:
+            - '!$test'
+          deny:
+            - pkg: github.com/davecgh/go-spew/spew
+              desc: spew is usually only used in tests
+            - pkg: github.com/stretchr/testify
+              desc: testify is usually only used in tests
+    dupl:
+      threshold: 100
+    goconst:
+      min-len: 3
+      min-occurrences: 3
+    gocyclo:
+      min-complexity: 10
+    gomodguard:
+      blocked:
+        modules:
+          - gopkg.in/go-playground/assert.v1:
+              recommendations:
+                - github.com/stretchr/testify
+              reason: testify is the test assertion framework we use
+          - github.com/pborman/uuid:
+              recommendations:
+                - github.com/google/uuid
+    misspell:
+      locale: US
+    prealloc:
+      simple: true
+      range-loops: true
+      for-loops: false
+    unparam:
+      check-exported: false
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    rules:
+      - linters:
+          - dupl
+          - errcheck
+          - gochecknoglobals
+          - gochecknoinits
+          - goconst
+          - gocyclo
+          - gosec
+          - scopelint
+          - wsl
+        path: _test\.go
+      - linters:
+          - gochecknoglobals
+          - gochecknoinits
+        path: cmd
+      - linters:
+          - revive
+        text: 'exported:'
+      - linters:
+          - lll
+        source: '^//go:generate '
+      - path: (.+)\.go$
+        text: Error return value of .(.*\.Write). is not checked
+      - path: (.+)\.go$
+        text: use wrapped static errors instead
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+issues:
+  new: false
+  fix: true
+formatters:
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
